@@ -9,6 +9,9 @@
 #include <stdbool.h>
 #include <time.h>
 #include <stdarg.h>
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 typedef enum {
   CLOSE,
@@ -33,6 +36,11 @@ typedef struct msg_t {
   msg_type_t type;
   char* buffer;
 } msg_s;
+
+typedef struct worker_t {
+  server_s* server;
+  lua_State *L;
+} worker_s;
 
 void LOG(const char* format, ...) {
   va_list args;

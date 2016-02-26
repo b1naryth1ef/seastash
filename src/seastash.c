@@ -21,6 +21,18 @@ void msg_free(msg_s* this) {
   free(this);
 }
 
+worker_s* worker_new(server_s* server) {
+  worker_s* w = malloc(sizeof(worker_s));
+  w->L = luaL_newstate();
+  luaL_openlibs(w->L);
+  w->server = server;
+}
+
+void worker_free(worker_s* w) {
+  lua_close(w->L);
+  free(w);
+}
+
 bool server_listen(server_s* this, char* addr_s, uint16_t port) {
   ipaddr addr = iplocal(addr_s, port, 0);
   this->socket = tcplisten(addr, 32);
@@ -66,9 +78,9 @@ coroutine void socket_loop(server_s* this, tcpsock conn) {
     tcpclose(conn);
 }
 
-coroutine void worker_loop(server_s* this) {
+coroutine void worker_loop(worker_s* this) {
   while (true) {
-    msg_s* msg = chr(this->work, msg_s*);
+    msg_s* msg = chr(this->server->work, msg_s*);
 
     if (msg->type == CLOSE) {
       msg_free(msg);
@@ -76,7 +88,7 @@ coroutine void worker_loop(server_s* this) {
     }
 
     // LOG("I would process %i bytes: `%s`", strlen(msg->buffer), msg->buffer);
-    this->mps++;
+    this->server->mps++;
     msg_free(msg);
   }
 }
@@ -98,8 +110,10 @@ int main(int argc, char *argv[]) {
   server.mps = 0;
   server_listen(&server, NULL, 5555);
 
+  // TODO: store worker structs somewhere
   for (int i = 0; i < server.config->num_workers; i++) {
-    go(worker_loop(&server));
+    worker_s* w = worker_new(&server);
+    go(worker_loop(w));
   }
 
   go(stats_loop(&server));
