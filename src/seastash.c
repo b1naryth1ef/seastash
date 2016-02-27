@@ -1,53 +1,5 @@
 #include "seastash.h"
 
-config_s* config_new() {
-  config_s* cfg = malloc(sizeof(config_s));
-  cfg->num_workers = 2;
-  cfg->msg_buffer_len = 128;
-  return cfg;
-}
-
-msg_s* msg_new(msg_type_t type) {
-  msg_s* msg = malloc(sizeof(msg_s));
-  msg->type = type;
-
-  return msg;
-}
-
-void msg_free(msg_s* this) {
-  if (this->buffer) {
-    free(this->buffer);
-  }
-  free(this);
-}
-
-worker_s* worker_new(server_s* server) {
-  worker_s* w = malloc(sizeof(worker_s));
-  w->L = luaL_newstate();
-  luaL_openlibs(w->L);
-  w->server = server;
-}
-
-void worker_free(worker_s* w) {
-  lua_close(w->L);
-  free(w);
-}
-
-bool server_listen(server_s* this, char* addr_s, uint16_t port) {
-  ipaddr addr = iplocal(addr_s, port, 0);
-  this->socket = tcplisten(addr, 32);
-
-  if (!this->socket) {
-    return false;
-  }
-
-  return true;
-}
-
-tcpsock server_accept(server_s* this) {
-  return tcpaccept(this->socket, -1);
-}
-
 coroutine void socket_loop(server_s* this, tcpsock conn) {
   char buf[16384];
 
@@ -78,21 +30,6 @@ coroutine void socket_loop(server_s* this, tcpsock conn) {
     tcpclose(conn);
 }
 
-coroutine void worker_loop(worker_s* this) {
-  while (true) {
-    msg_s* msg = chr(this->server->work, msg_s*);
-
-    if (msg->type == CLOSE) {
-      msg_free(msg);
-      return;
-    }
-
-    // LOG("I would process %i bytes: `%s`", strlen(msg->buffer), msg->buffer);
-    this->server->mps++;
-    msg_free(msg);
-  }
-}
-
 coroutine void stats_loop(server_s* this) {
   while (true) {
     msleep(now() + 1000);
@@ -105,11 +42,17 @@ coroutine void stats_loop(server_s* this) {
 
 int main(int argc, char *argv[]) {
   server_s server;
-  server.config = config_new();
+
+  server.config = config_from_file("config.lua");
+  if (!server.config) {
+    return -1;
+  }
+
   server.work = chmake(msg_s*, server.config->msg_buffer_len);
   server.mps = 0;
   server_listen(&server, NULL, 5555);
 
+  LOG("INFO: Starting %i workers routines...", server.config->num_workers);
   // TODO: store worker structs somewhere
   for (int i = 0; i < server.config->num_workers; i++) {
     worker_s* w = worker_new(&server);

@@ -32,11 +32,21 @@ end
 ```
 
 ## Configuration
-```
+```lua
+
 config = {
-  steps: {
-    {filters: {plugin1, plugin2}, outputs: {plugin3}},
-    {filters: {plugin4}, outputs: {plugin3, plugin5}}
+  // The number of worker-coroutines to run. Generally should == numproc
+  num_workers = 2,
+
+  // The number of messages to buffer in memory. These will be completely lost if the process dies
+  msg_buffer_len = 128,
+
+  // These are the rules for processing
+  steps = {
+  {
+    filters = {my_filter_function},
+    parsers = {my_parser_function},
+    outputs = {my_output_function}
   }
 }
 ```
