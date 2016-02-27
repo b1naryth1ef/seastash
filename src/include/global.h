@@ -29,12 +29,12 @@ static void LOG(const char* format, ...) {
   char buffer[26];
   struct tm* tm_info;
 
-  // time(&timer);
-  // tm_info = localtime(&timer);
-  // strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", tm_info);
+  time(&timer);
+  tm_info = localtime(&timer);
+  strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", tm_info);
 
   char fmt[128];
-  sprintf(fmt, "[%i] %s\n", (int)getpid(), format);
+  sprintf(fmt, "[%s] %s\n", buffer, format);
   vprintf(fmt, args);
   va_end(args);
 }

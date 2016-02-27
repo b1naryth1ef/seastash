@@ -7,12 +7,9 @@
 typedef struct {
   uint64_t total;
   uint64_t mps;
-  pthread_mutex_t lock;
 } stats_s;
 
 stats_s* stats_new();
-int stats_share();
-stats_s* stats_share_get(int segment);
 
 typedef struct {
   config_s* config;

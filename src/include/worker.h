@@ -11,4 +11,4 @@ typedef struct worker_t {
 worker_s* worker_new(server_s* server);
 void worker_free(worker_s* w);
 void worker_process_message(worker_s* this, msg_s* msg);
-coroutine void worker_loop(worker_s* this, stats_s *stats);
+coroutine void worker_loop(worker_s* this);

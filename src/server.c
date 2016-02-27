@@ -4,22 +4,7 @@ stats_s* stats_new() {
   stats_s* stats = malloc(sizeof(stats_s));
   stats->total = 0;
   stats->mps = 0;
-  pthread_mutex_init(&stats->lock, NULL);
   return stats;
-}
-
-stats_s* stats_share_get(int segment) {
-  return (stats_s*) shmat(segment, 0, 0);
-}
-
-int stats_share() {
-  int segment = shmget(IPC_PRIVATE, sizeof(stats_s),
-      IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-
-  stats_s* stats = stats_new();
-  char* memory = shmat(segment, 0, 0);
-  memcpy(memory, stats, sizeof(stats_s));
-  return segment;
 }
 
 bool server_listen(server_s* this, char* addr_s, uint16_t port) {

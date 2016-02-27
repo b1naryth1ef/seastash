@@ -76,7 +76,7 @@ void worker_process_message(worker_s* this, msg_s* msg) {
 	}
 }
 
-coroutine void worker_loop(worker_s* this, stats_s *stats) {
+coroutine void worker_loop(worker_s* this) {
   while (true) {
     msg_s* msg = chr(this->server->work, msg_s*);
 
@@ -86,10 +86,7 @@ coroutine void worker_loop(worker_s* this, stats_s *stats) {
     }
 
     worker_process_message(this, msg);
-
-    //pthread_mutex_lock(&stats->lock);
-    //stats->mps++;
-    //pthread_mutex_unlock(&stats->lock);
+    this->server->stats->mps++;
     msg_free(msg);
   }
 }
