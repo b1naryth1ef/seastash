@@ -1,22 +1,36 @@
+#!/usr/bin/env python
 import sys
 import time
 import socket
+import thread
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+if len(sys.argv) < 3:
+    print "Usage: ./test.py <clients> <mps>"
+    sys.exit(1)
 
-sock.connect(('localhost', 5555))
+clients = int(sys.argv[1])
+mps = int(sys.argv[2])
 
-i = 1
+MPS = 0
 
-if len(sys.argv) > 1:
-    wait = float(sys.argv[1])
-else:
-    wait = 0
+def client():
+    global MPS
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('localhost', 5555))
 
-try:
+    i = 0
     while True:
-        sock.sendall("TEST %s!\r" % i)
         i += 1
-        if wait: time.sleep(wait)
-except KeyboardInterrupt:
-    sock.close()
+        sock.sendall("TEST %s!\r" % i)
+        if mps: time.sleep(1.0 / mps)
+        MPS += 1
+
+for _ in range(clients):
+    print "Spawning thread..."
+    thread.start_new_thread(client, ())
+
+while True:
+    time.sleep(1)
+    print "MPS: %s" % MPS
+    MPS = 0
+

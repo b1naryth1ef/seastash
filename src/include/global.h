@@ -1,4 +1,7 @@
 #pragma once
+
+#define _GNU_SOURCE
+
 #include <libmill.h>
 #include <errno.h>
 #include <stdio.h>
@@ -11,6 +14,12 @@
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <pthread.h>
+
+int ftruncate(int fildes, off_t length);
 
 static void LOG(const char* format, ...) {
   va_list args;
@@ -25,7 +34,7 @@ static void LOG(const char* format, ...) {
   // strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", tm_info);
 
   char fmt[128];
-  sprintf(fmt, "%s\n", format);
+  sprintf(fmt, "[%i] %s\n", (int)getpid(), format);
   vprintf(fmt, args);
   va_end(args);
 }

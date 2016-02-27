@@ -11,7 +11,7 @@ function output(tbl)
 end
 
 config = {
-  num_workers = 4,
+  num_workers = 16,
   msg_buffer_len = 128,
 
   steps = {

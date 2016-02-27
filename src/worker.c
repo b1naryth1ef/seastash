@@ -1,19 +1,5 @@
 #include "worker.h"
 
-msg_s* msg_new(msg_type_t type) {
-  msg_s* msg = malloc(sizeof(msg_s));
-  msg->type = type;
-
-  return msg;
-}
-
-void msg_free(msg_s* this) {
-  if (this->buffer) {
-    free(this->buffer);
-  }
-  free(this);
-}
-
 worker_s* worker_new(server_s* server) {
   worker_s* w = malloc(sizeof(worker_s));
   w->L = lua_newthread(server->config->L);
@@ -87,12 +73,10 @@ void worker_process_message(worker_s* this, msg_s* msg) {
       lua_rawgeti(this->L, LUA_REGISTRYINDEX, result_table);
       lua_call(this->L, 1, 0);
     }
-
-    lua_debug_stack(this->L);
 	}
 }
 
-coroutine void worker_loop(worker_s* this) {
+coroutine void worker_loop(worker_s* this, stats_s *stats) {
   while (true) {
     msg_s* msg = chr(this->server->work, msg_s*);
 
@@ -102,7 +86,10 @@ coroutine void worker_loop(worker_s* this) {
     }
 
     worker_process_message(this, msg);
-    this->server->mps++;
+
+    //pthread_mutex_lock(&stats->lock);
+    //stats->mps++;
+    //pthread_mutex_unlock(&stats->lock);
     msg_free(msg);
   }
 }
