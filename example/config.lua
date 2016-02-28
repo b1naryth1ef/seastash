@@ -1,5 +1,10 @@
+require('es')
+
+elasticsearch = es_create("localhost", 9200)
+
 function filter(line)
-  return string.sub(line, 1, 4) == "asdf"
+  return true
+  -- return string.sub(line, 1, 4) == "asdf"
 end
 
 function parse(table, line)
@@ -7,17 +12,20 @@ function parse(table, line)
   return table
 end
 
-function output(tbl)
+function output(table)
+
 end
 
+print(elasticsearch.parser)
+
 config = {
-  num_workers = 16,
+  num_workers = 4,
   msg_buffer_len = 128,
 
   steps = {
     {
       filters = {filter},
-      parsers = {parse},
+      parsers = {parse, parse},
       outputs = {output}
     }
   }

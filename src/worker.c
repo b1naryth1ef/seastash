@@ -11,14 +11,17 @@ void worker_free(worker_s* w) {
   free(w);
 }
 
+// Attempts to fully process a message through all steps
 void worker_process_message(worker_s* this, msg_s* msg) {
 	config_step_s* step;
-
   bool cont = false;
+  int table_ref;
 
-	for (int i = 0; this->server->config->steps[i]; i++) {
+	// Run all the steps in order, encapsilating failures within the step
+  for (int i = 0; this->server->config->steps[i]; i++) {
 		step = this->server->config->steps[i];
 
+    // Run all the filters in order, skipping the step if a single one fails to match
     for (int fi = 0; step->filters[fi]; fi++) {
       lua_rawgeti(this->L, LUA_REGISTRYINDEX, step->filters[fi]);
       lua_pushstring(this->L, msg->buffer);
@@ -37,42 +40,52 @@ void worker_process_message(worker_s* this, msg_s* msg) {
       }
     }
 
-    // If the filter doesnt match, just move on
+    // If the filter doesnt match, move on to next step
     if (!cont) {
       continue;
     }
 
+    // Run all the parsers in order
     for (int pi = 0; step->parsers[pi]; pi++) {
       lua_rawgeti(this->L, LUA_REGISTRYINDEX, step->parsers[pi]);
 
-      // Push a new table on the stack if its the first iteration
+      // For the first iteration, create a blank table. Subsequently we need
+      // to grab the table from the registry.
       if (pi == 0) {
         lua_newtable(this->L);
+      } else {
+        lua_rawgeti(this->L, LUA_REGISTRYINDEX, table_ref);
       }
 
       lua_pushstring(this->L, msg->buffer);
       lua_call(this->L, 2, 1);
 
+      // If we didn't return a table, treat it as a complete falure of the step
       if (!lua_istable(this->L, -1)) {
         LOG("ERROR: parser did not return a table.");
         cont = false;
         lua_pop(this->L, 1);
         break;
       }
+
+      // If we got a table we need to pop it so we can resort the stack
+      table_ref = luaL_ref(this->L, LUA_REGISTRYINDEX);
     }
 
+    // If a parser failed, move on to next step
     if (!cont) {
-      break;
+      continue;
     }
 
-    // Now store the final version of the table in the global registry
-    int result_table = luaL_ref(this->L, LUA_REGISTRYINDEX);
-
-    for (int oi = 0; step->parsers[oi]; oi++) {
+    // Run all the outputs in order
+    for (int oi = 0; step->outputs[oi]; oi++) {
       lua_rawgeti(this->L, LUA_REGISTRYINDEX, step->outputs[oi]);
-      lua_rawgeti(this->L, LUA_REGISTRYINDEX, result_table);
+      lua_rawgeti(this->L, LUA_REGISTRYINDEX, table_ref);
       lua_call(this->L, 1, 0);
     }
+
+    // Finally unref the final table
+    luaL_unref(this->L, LUA_REGISTRYINDEX, table_ref);
 	}
 }
 
