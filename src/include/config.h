@@ -19,9 +19,14 @@ typedef struct config_step_t {
   execution.
 */
 typedef struct config_t {
-  uint16_t regi;
+  // Number of worker-coroutines to run
   uint16_t num_workers;
+
+  // Number of messages to keep in memory as a buffer
   uint16_t msg_buffer_len;
+
+  // Network delimiter
+  char network_delim[1];
 
 	lua_State* L;
   config_step_s* steps[256];

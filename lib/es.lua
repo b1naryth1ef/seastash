@@ -3,7 +3,6 @@ local elasticsearch = require "elasticsearch"
 function es_create(host, port)
   local inst = {}
 
-
   inst.parser = function(table, line)
     print(inst.client)
     return table

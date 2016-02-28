@@ -43,5 +43,7 @@ config = {
 ```
 
 ## TODO
-- Write couple parsers and ES plugin
+- Add support for UDP
+- Add a syslog filter/parser combo
+- Add a ES output
 

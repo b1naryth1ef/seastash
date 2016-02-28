@@ -1,5 +1,19 @@
 #include "config.h"
 
+void lua_append_path(lua_State* L, const char* add) {
+    char buffer[8192];
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "path");
+    char* path = lua_tostring(L, -1);
+    strcat(buffer, path);
+    strcat(buffer, ";");
+    strcat(buffer, add);
+    lua_pop(L, 1);
+    lua_pushstring(L, buffer);
+    lua_setfield(L, -2, "path");
+    lua_pop(L, 1);
+}
+
 // Load a table-array of function pointers into array
 void store_fptr_array(int* array, lua_State* L) {
 	lua_pushnil(L);
@@ -18,6 +32,7 @@ config_s* config_new() {
 	config_s* cfg = malloc(sizeof(config_s));
 	cfg->num_workers = 2;
 	cfg->msg_buffer_len = 128;
+  cfg->network_delim[0] = '\n';
 	cfg->L = luaL_newstate();
 	luaL_openlibs(cfg->L);
 	return cfg;
@@ -56,6 +71,9 @@ config_step_s* config_step_from_table(lua_State* L) {
 config_s* config_from_file(const char* filename) {
 	config_s* cfg = config_new();
 
+  // Add lib to path TODO: this is relative as fuck
+  lua_append_path(cfg->L, "../lib/?.lua");
+
 	// Attempt to load config file
 	if (luaL_loadfile(cfg->L, filename) || lua_pcall(cfg->L, 0, 0, 0)) {
 		LOG("ERROR: cannot run config file: %s", lua_tostring(cfg->L, -1));
@@ -80,6 +98,21 @@ config_s* config_from_file(const char* filename) {
 		lua_pop(cfg->L, 1);
 		lua_pop(cfg->L, 1);
 	}
+
+  if (lua_table_get(cfg->L, "network_delim")) {
+    char* tmp = lua_tostring(cfg->L, -1);
+
+    if (strlen(tmp) != 1) {
+		  lua_pop(cfg->L, 1);
+		  lua_pop(cfg->L, 1);
+      LOG("ERROR: network_delim is more than a single character");
+      return NULL;
+    }
+
+    cfg->network_delim[0] = tmp[0];
+		lua_pop(cfg->L, 1);
+		lua_pop(cfg->L, 1);
+  }
 
 	// If we have steps load those
 	if (lua_table_get(cfg->L, "steps")) {

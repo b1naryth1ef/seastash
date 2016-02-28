@@ -1,22 +1,19 @@
+require('syslog')
 require('es')
 
 elasticsearch = es_create("localhost", 9200)
 
-function filter(line)
-  return true
-  -- return string.sub(line, 1, 4) == "asdf"
-end
-
 function parse(table, line)
+  print(line)
   table.key = string.match(line, "%d+")
   return table
 end
 
 function output(table)
-
+  for k, v in pairs(table) do
+    print(k..':'..v)
+  end
 end
-
-print(elasticsearch.parser)
 
 config = {
   num_workers = 4,
@@ -24,8 +21,8 @@ config = {
 
   steps = {
     {
-      filters = {filter},
-      parsers = {parse, parse},
+      filters = {syslog_filter},
+      parsers = {syslog_parse},
       outputs = {output}
     }
   }

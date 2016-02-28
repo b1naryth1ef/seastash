@@ -45,17 +45,17 @@ static bool lua_table_get(lua_State* L, char* key) {
   while (lua_next(L, -2)) {
     // Skip over non-string keys
     if (!lua_isstring(L, -2)) {
-      continue;
+      goto cont;
     }
 
     if (strcmp(lua_tostring(L, -2), key) == 0) {
       return true;
     }
 
-    lua_pop(L, 1);
+    cont:
+      lua_pop(L, 1);
   }
 
-  lua_pop(L, 1);
   return false;
 }
 
@@ -86,3 +86,4 @@ static void lua_debug_stack(lua_State* l) {
 
   printf("\n");
 }
+

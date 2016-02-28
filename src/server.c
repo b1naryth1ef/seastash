@@ -36,7 +36,7 @@ coroutine void server_loop(server_s* this, tcpsock conn) {
   char buf[16384];
 
   while (true) {
-    size_t nbytes = tcprecvuntil(conn, buf, sizeof(buf), "\r" , 1, -1);
+    size_t nbytes = tcprecvuntil(conn, buf, sizeof(buf), this->config->network_delim, 1, -1);
 
     if (errno) {
       if (errno == ENOBUFS) {
