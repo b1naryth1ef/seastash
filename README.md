@@ -1,6 +1,6 @@
 # SeaStash
 
-SeaStash is a C implementation of the logstash server that was built for extremely fast and efficient log processing. It uses [libmill](http://libmill.org/) for concurrency, and [lua](http://www.lua.org/) for dynamically configurable log parsing and processing.
+Seastash is a C-based logstash-like server for the aggregation, filtering, parsing, and exportation of raw log lines. It uses [libmill](http://libmill.org/) for concurrency, and [lua](http://www.lua.org/) for dynamically configurable log parsing and processing.
 
 ## Configuration
 ```lua
@@ -44,6 +44,5 @@ config = {
 
 ## TODO
 - Add support for UDP
-- Add a syslog filter/parser combo
 - Add a ES output
 
