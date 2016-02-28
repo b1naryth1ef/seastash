@@ -26,13 +26,13 @@ def my_output_function(table)
 end
 
 config = {
-  // The number of worker-coroutines to run. Generally should == numproc
+  -- The number of worker-coroutines to run. Generally should == numproc
   num_workers = 2,
 
-  // The number of messages to buffer in memory. These will be completely lost if the process dies
+  -- The number of messages to buffer in memory. These will be completely lost if the process dies
   msg_buffer_len = 128,
 
-  // These are the rules for processing
+  -- These are the rules for processing
   steps = {
   {
     filters = {my_filter_function},
