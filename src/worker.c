@@ -3,11 +3,13 @@
 worker_s* worker_new(server_s* server) {
   worker_s* w = malloc(sizeof(worker_s));
   w->L = lua_newthread(server->config->L);
+  w->ctrl = chmake(int, 0);
   w->server = server;
 }
 
 void worker_free(worker_s* w) {
   lua_close(w->L);
+  chclose(w->ctrl);
   free(w);
 }
 
@@ -91,16 +93,24 @@ void worker_process_message(worker_s* this, msg_s* msg) {
 
 coroutine void worker_loop(worker_s* this) {
   while (true) {
-    msg_s* msg = chr(this->server->work, msg_s*);
+    choose {
+      in(this->ctrl, int, i): {
+        if (i == 0) {
+          return;
+        }
+      }
+      in(this->server->work, msg_s*, msg): {
+        if (msg->type == CLOSE) {
+          msg_free(msg);
+          return;
+        }
 
-    if (msg->type == CLOSE) {
-      msg_free(msg);
-      return;
+        worker_process_message(this, msg);
+        this->server->stats->mps++;
+        msg_free(msg);
+      }
+      end
     }
-
-    worker_process_message(this, msg);
-    this->server->stats->mps++;
-    msg_free(msg);
   }
 }
 

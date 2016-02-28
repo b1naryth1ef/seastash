@@ -6,6 +6,7 @@
 typedef struct worker_t {
   server_s* server;
   lua_State *L;
+  chan ctrl;
 } worker_s;
 
 worker_s* worker_new(server_s* server);

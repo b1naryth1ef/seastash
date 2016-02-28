@@ -33,4 +33,5 @@ typedef struct config_t {
 } config_s;
 
 config_s* config_new();
+void config_free(config_s* this);
 config_s* config_from_file(const char* filename);

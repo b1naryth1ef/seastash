@@ -18,6 +18,7 @@ typedef struct {
   chan work;
 
   stats_s* stats;
+  bool running;
 } server_s;
 
 bool server_listen(server_s* this, char* addr_s, uint16_t port);

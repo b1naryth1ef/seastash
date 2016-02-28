@@ -20,14 +20,14 @@ bool server_listen(server_s* this, char* addr_s, uint16_t port) {
 
 void server_listen_loop(server_s* this) {
   LOG("Starting listen... %p", this->socket);
-  while (true) {
-    tcpsock as = tcpaccept(this->socket, -1);
-    LOG("Accepted connection %p", as);
+  while (this->running) {
+    tcpsock as = tcpaccept(this->socket, now() + 100);
 
     if (!as) {
       continue;
     }
 
+    LOG("Accepted connection %p", as);
     go(server_loop(this, as));
   }
 }
@@ -35,8 +35,8 @@ void server_listen_loop(server_s* this) {
 coroutine void server_loop(server_s* this, tcpsock conn) {
   char buf[16384];
 
-  while (true) {
-    size_t nbytes = tcprecvuntil(conn, buf, sizeof(buf), this->config->network_delim, 1, -1);
+  while (this->running) {
+    size_t nbytes = tcprecvuntil(conn, buf, sizeof(buf), this->config->network_delim, 1, now() + 100);
 
     if (errno) {
       if (errno == ENOBUFS) {

@@ -1,4 +1,4 @@
- "config.h"
+#include "config.h"
 
 void lua_append_path(lua_State* L, const char* add) {
   char buffer[8192];
@@ -36,6 +36,15 @@ config_s* config_new() {
   cfg->L = luaL_newstate();
   luaL_openlibs(cfg->L);
   return cfg;
+}
+
+void config_free(config_s* this) {
+  for (int i = 0; this->steps[i]; i++) {
+    free(this->steps[i]);
+  }
+
+  lua_close(this->L);
+  free(this);
 }
 
 config_step_s* config_step_from_table(lua_State* L) {
