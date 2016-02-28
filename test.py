@@ -21,7 +21,7 @@ def client():
     i = 0
     while True:
         i += 1
-        sock.sendall("TEST %s!\r" % i)
+        sock.sendall('<13>1 2016-02-28T07:15:40.091451-06:00 eos andrei - - [timeQuality tzKnown="1" isSynced="0"] THIS IS A TEST #%i\n' % i)
         if mps: time.sleep(1.0 / mps)
         MPS += 1
 

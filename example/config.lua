@@ -4,8 +4,6 @@ require('es')
 elasticsearch = es_create("localhost", 9200)
 
 function parse(table, line)
-  print(line)
-  table.key = string.match(line, "%d+")
   return table
 end
 
