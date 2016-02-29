@@ -15,13 +15,13 @@ void worker_free(worker_s* w) {
 
 // Attempts to fully process a message through all steps
 void worker_process_message(worker_s* this, msg_s* msg) {
-	config_step_s* step;
+  config_step_s* step;
   bool cont = false;
   int table_ref;
 
-	// Run all the steps in order, encapsilating failures within the step
+  // Run all the steps in order, encapsilating failures within the step
   for (int i = 0; this->server->config->steps[i]; i++) {
-		step = this->server->config->steps[i];
+    step = this->server->config->steps[i];
 
     // Run all the filters in order, skipping the step if a single one fails to match
     for (int fi = 0; step->filters[fi]; fi++) {
@@ -88,7 +88,7 @@ void worker_process_message(worker_s* this, msg_s* msg) {
 
     // Finally unref the final table
     luaL_unref(this->L, LUA_REGISTRYINDEX, table_ref);
-	}
+  }
 }
 
 coroutine void worker_loop(worker_s* this) {
