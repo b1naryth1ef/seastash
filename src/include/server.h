@@ -24,4 +24,7 @@ typedef struct {
 bool server_listen(server_s* this, char* addr_s, uint16_t port);
 tcpsock server_accept(server_s* this);
 void server_listen_loop(server_s* this);
-coroutine void server_loop(server_s* this, tcpsock conn);
+void server_read_loop(server_s* this, tcpsock conn);
+void server_process_message(worker_s* this, char* buffer);
+
+
