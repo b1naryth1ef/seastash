@@ -9,14 +9,12 @@ end
 
 function output(table)
   for k, v in pairs(table) do
-    print(k..':'..v)
+    -- print(k..':'..v)
   end
 end
 
 config = {
-  num_workers = 4,
-  msg_buffer_len = 128,
-
+  debug = true,
   steps = {
     {
       filters = {syslog_filter},

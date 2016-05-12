@@ -20,6 +20,17 @@
 #include <pthread.h>
 #include <signal.h>
 
+// TODO: clean
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
+#include <string.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+
 int ftruncate(int fildes, off_t length);
 
 static void LOG(const char* format, ...) {

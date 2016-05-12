@@ -30,8 +30,7 @@ void store_fptr_array(int* array, lua_State* L) {
 
 config_s* config_new() {
   config_s* cfg = malloc(sizeof(config_s));
-  cfg->num_workers = 2;
-  cfg->msg_buffer_len = 128;
+  cfg->debug = false;
   cfg->network_delim[0] = '\n';
   cfg->L = luaL_newstate();
   luaL_openlibs(cfg->L);
@@ -95,19 +94,14 @@ config_s* config_from_file(const char* filename) {
     return NULL;
   }
 
-  // Now we query variables out of the table
-  if (lua_table_get(cfg->L, "num_workers")) {
-    cfg->num_workers = (uint16_t) lua_tonumber(cfg->L, -1);
+  // Pop debug boolean
+  if (lua_table_get(cfg->L, "debug")) {
+    cfg->debug = lua_toboolean(cfg->L, -1);
     lua_pop(cfg->L, 1);
     lua_pop(cfg->L, 1);
   }
 
-  if (lua_table_get(cfg->L, "msg_buffer_len")) {
-    cfg->msg_buffer_len = (uint16_t) lua_tonumber(cfg->L, -1);
-    lua_pop(cfg->L, 1);
-    lua_pop(cfg->L, 1);
-  }
-
+  // Pop network_delim value
   if (lua_table_get(cfg->L, "network_delim")) {
     char* tmp = lua_tostring(cfg->L, -1);
 

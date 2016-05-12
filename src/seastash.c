@@ -1,17 +1,6 @@
 #include "seastash.h"
 
 server_s server;
-worker_s* workers[4096];
-
-coroutine void stats_loop(server_s* server) {
-  while (true) {
-    if (server->stats->mps > 0) {
-      LOG("INFO: %i messages per second", server->stats->mps);
-      server->stats->mps = 0;
-    }
-    msleep(now() + 1000);
-  }
-}
 
 void signal_handle(int signo) {
   if (signo == SIGINT || signo == SIGTERM) {
@@ -42,39 +31,41 @@ bool signal_bind_all() {
   return true;
 }
 
+void on_data_bound(struct Reactor* reactor, int fd) {
+  server_on_data(&server, fd);
+}
+
 int main(int argc, char *argv[]) {
   if (!signal_bind_all()) {
     LOG("ERROR: Failed to bind signal handlers");
     return 1;
   }
 
+  struct Reactor r = {.on_data = &on_data_bound, .maxfd = 1024};
   server.running = true;
   server.config = config_from_file("config.lua");
   server.stats = stats_new();
+  server.r = &r;
+  server.L = server.config->L;
 
   // Make sure the config loaded OK
   if (!server.config) {
     return 1;
   }
 
-  server.work = chmake(msg_s*, server.config->msg_buffer_len);
-
   // Start listening
-  if (!server_listen(&server, NULL, 5555)) {
+  if (!server_listen(&server, "5555")) {
     LOG("ERROR: Failed to bind server.");
     return 1;
   }
 
-  LOG("INFO: Starting %i workers", server.config->num_workers);
-
-  // Start all the worker forks
-  for (int i = 0; i < server.config->num_workers; i++) {
-    workers[i] = worker_new(&server);
-    go(worker_loop(workers[i]));
+  // If we're in debug mode, start the stats thread
+  if (server.config->debug) {
+    pthread_t tid;
+    pthread_create(&tid, NULL, &stats_thread_pf, (void*)server.stats);
   }
 
-  go(stats_loop(&server));
-
-  server_listen_loop(&server);
+  LOG("INFO: Started server");
+  server_loop(&server);
 }
 

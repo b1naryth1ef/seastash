@@ -2,15 +2,18 @@
 
 #include "global.h"
 
+#define MAX_FILTERS 1024
+#define MAX_STEPS 1024
+
 /*
   A "step" in the pipeline. Each step contains up to 256 seperate filters,
   parsers and outputs. The arrays in this struct contain LUA_REGISTRYINDEX
   indexes that point to functions passed in the configuration.
 */
 typedef struct config_step_t {
-  int filters[256];
-  int parsers[256];
-  int outputs[256];
+  int filters[MAX_FILTERS];
+  int parsers[MAX_FILTERS];
+  int outputs[MAX_FILTERS];
 } config_step_s;
 
 /*
@@ -19,17 +22,14 @@ typedef struct config_step_t {
   execution.
 */
 typedef struct config_t {
-  // Number of worker-coroutines to run
-  uint16_t num_workers;
-
-  // Number of messages to keep in memory as a buffer
-  uint16_t msg_buffer_len;
+  // Debug mode
+  bool debug;
 
   // Network delimiter
   char network_delim[1];
 
 	lua_State* L;
-  config_step_s* steps[256];
+  config_step_s* steps[MAX_STEPS];
 } config_s;
 
 config_s* config_new();
